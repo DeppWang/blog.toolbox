@@ -55,9 +55,10 @@ public class NowsApplication implements CommandLineRunner {
     @Override
     public void run(String... strings) throws Exception {
 
-        if (strings.length == 1) {
-            fileCount = Integer.parseInt(strings[0]);
-        }
+//        if (strings.length == 1) {
+//            fileCount = Integer.parseInt(strings[0]);
+//        }
+
         if (config.getAppModel().equals(BaseConstants.TOTAL_WORDS)) {
             filterProcessManager = SpringBeanFactory.getBean(TotalSumFilterProcessManager.class);
             resultService = SpringBeanFactory.getBean(TotalSumResultServiceImpl.class);
@@ -66,11 +67,11 @@ public class NowsApplication implements CommandLineRunner {
         } else {
             filterProcessManager = SpringBeanFactory.getBean(FixPicFilterProcessManager.class);
             resultService = SpringBeanFactory.getBean(PicResultServiceImpl.class);
-            fileCount = Integer.parseInt(strings[1]);
+            fileCount = 100;
             ((PicResultServiceImpl) resultService).setCurrentTime();
         }
 
-        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile(strings[0]);
+        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile("E://Hexo//Blog//source//_posts");
         logger.info("allFile size=[{}]", allFile.size());
         if (fileCount > allFile.size()) {
             fileCount = allFile.size();
