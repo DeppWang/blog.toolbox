@@ -71,7 +71,8 @@ public class NowsApplication implements CommandLineRunner {
             ((PicResultServiceImpl) resultService).setCurrentTime();
         }
 
-        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile("E://Hexo//Blog//source//_posts");
+//        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile("E://Hexo//Blog//source//_posts");
+        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile("/Users/yanjie/GitHub/deppwang.github.io/source/_posts");
         logger.info("allFile size=[{}]", allFile.size());
         if (fileCount > allFile.size()) {
             fileCount = allFile.size();

@@ -9,6 +9,7 @@ import top.crossoverjie.nows.nows.service.UploadPicService;
 import top.crossoverjie.nows.nows.util.DownloadUploadPic;
 import top.crossoverjie.nows.nows.util.SpringBeanFactory;
 
+import javax.net.ssl.SSLHandshakeException;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -169,10 +170,16 @@ public class ScanTask implements Runnable {
         for (String pic : pics) {
             String path = appConfig.getDownLoadPath() + "/" + filePath + "---" + pic.substring(pic.lastIndexOf("/") + 1);
             try {
-                if(path.contains(".gif")){
-                    DownloadUploadPic.download(pic, path);
+                if (pic.contains("http:")) {
+                    pic = pic.replace("http:", "https:");
                 }
-                logger.info("下载[{}]图片成功,地址=[{}]", pic, path);
+                DownloadUploadPic.download(pic, path);
+
+                if (!new File(path).exists()) {
+                    logger.info("下载[{}]图片成功,地址=[{}]", pic, path);
+                }
+            } catch (SSLHandshakeException e) {
+                logger.error("图片地址过期，不能访问！ url=[{}]，图片地址过期，不能访问！", pic);
             } catch (IOException e) {
                 logger.error("下载图片失败 fileName=[{}]", path, e);
             }

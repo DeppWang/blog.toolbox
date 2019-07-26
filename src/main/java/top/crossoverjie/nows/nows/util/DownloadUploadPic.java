@@ -12,7 +12,7 @@ import java.net.URLConnection;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Function:图片下载
+ * Function:图片下载上传
  *
  * @author crossoverJie
  * Date: 2019-05-07 00:14
@@ -22,21 +22,21 @@ public class DownloadUploadPic {
 
     private static Logger logger = LoggerFactory.getLogger(DownloadUploadPic.class);
 
-    private static OkHttpClient httpClient ;
+    private static OkHttpClient httpClient;
 
     static {
         httpClient = new OkHttpClient().newBuilder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(10, TimeUnit.SECONDS)
-                .writeTimeout(10,TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true)
                 .build();
     }
 
     public static void download(String urlString, String fileName) throws IOException {
-        File file = new File(fileName) ;
-        if (file.exists()){
-            logger.info("[{}]已下载完毕",fileName);
+        File file = new File(fileName);
+        if (file.exists()) {
+            logger.info("[{}]已下载完毕", fileName);
             return;
         }
         URL url = null;
@@ -60,10 +60,10 @@ public class DownloadUploadPic {
         } catch (Exception e) {
             throw e;
         } finally {
-            if (os != null){
+            if (os != null) {
                 os.close();
             }
-            if (is != null){
+            if (is != null) {
                 is.close();
             }
         }
@@ -71,11 +71,10 @@ public class DownloadUploadPic {
     }
 
 
+    public static String upload(String fileName, int errorTime) throws IOException, InterruptedException {
 
-    public static String upload(String fileName,int errorTime) throws IOException, InterruptedException {
-
-        if (errorTime == 5){
-            logger.error("[{}]上传失败次数达到上限{}次",fileName,errorTime);
+        if (errorTime == 5) {
+            logger.error("[{}]上传失败次数达到上限{}次", fileName, errorTime);
             return null;
         }
 
@@ -92,22 +91,22 @@ public class DownloadUploadPic {
                 .post(requestBody)
                 .build();
 
-        Response response = httpClient.newCall(request).execute() ;
-        if (response.isSuccessful()){
+        Response response = httpClient.newCall(request).execute();
+        if (response.isSuccessful()) {
             ResponseBody body = response.body();
             try {
                 SMResponse smResponse = JSON.parseObject(body.string(), SMResponse.class);
                 return smResponse.getData().getUrl();
-            }catch (Exception e){
-                logger.error("上传图片[{}]失败 res=[{}]",fileName,body.string());
-                errorTime ++;
+            } catch (Exception e) {
+                logger.error("上传图片[{}]失败 res=[{}]", fileName, body.string());
+                errorTime++;
                 TimeUnit.SECONDS.sleep(1);
                 return upload(fileName, errorTime);
-            }finally {
+            } finally {
                 body.close();
             }
         }
-        return null ;
+        return null;
     }
 }
 
