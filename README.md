@@ -70,7 +70,8 @@ java -jar blog.toolbox-0.0.2.jar /xx/xx/path
 
 采用责任链模式可自定义统计策略。
 
-```java
+```
+    java
     @Bean("httpFilterProcess")
     public FilterProcess httpFilterProcess() {
         return new HttpFilterProcess();
@@ -88,3 +89,13 @@ java -jar blog.toolbox-0.0.2.jar /xx/xx/path
                 .addProcess(httpFilterProcess);
     }
 ```
+
+## 备份模式3：只下载到本地
+## 替换模式2：备份+替换
+1. 遍历所有文章，查找当前所有图片链接
+2. 如果链接为图床链接，过滤掉
+3. 如果链接在本地已经存在，跳过下载
+4. 但还是上传到图床，因为上传到图床的链接都被过滤掉了
+5. 上传成功，原地址与新地址映射
+6. 替换当前文章的所有图片链接
+* 替换模式只有1、2、3

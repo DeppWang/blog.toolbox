@@ -65,7 +65,7 @@ public class NowsApplication implements CommandLineRunner {
             ((TotalSumResultServiceImpl) resultService).setCurrentTime();
 
         } else {
-            filterProcessManager = SpringBeanFactory.getBean(FixPicFilterProcessManager.class);
+            filterProcessManager = SpringBeanFactory.getBean(FixPicFilterProcessManager.class);//执行过滤
             resultService = SpringBeanFactory.getBean(PicResultServiceImpl.class);
             fileCount = 100;
             ((PicResultServiceImpl) resultService).setCurrentTime();

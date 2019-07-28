@@ -6,7 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.crossoverjie.nows.nows.pojo.SMResponse;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +39,7 @@ public class DownloadUploadPic {
     public static void download(String urlString, String fileName) throws IOException {
         File file = new File(fileName);
         if (file.exists()) {
-            logger.info("[{}]已下载完毕", fileName);
+            logger.info("[{}]已下载完毕，地址=[{}]", urlString, fileName);
             return;
         }
         URL url = null;
@@ -44,9 +47,20 @@ public class DownloadUploadPic {
         InputStream is = null;
         try {
             url = new URL(urlString);
+//            BufferedImage image = ImageIO.read(url);
+//            ImageIO.write(image, "jpg", new File(fileName));
             URLConnection con = url.openConnection();
+            con.setRequestProperty("User-agent", "Mozilla/5.0");
+            //如果url是HTTP格式，使用HTTP下载方法，如果下载下来为空，尝试转换为https下载
+            if (con.getContentLength() == 278 && urlString.contains("http:")) {
+                urlString = urlString.replace("http:", "https:");
+                url = new URL(urlString);
+                con = url.openConnection();
+            }
             // 输入流
             is = con.getInputStream();
+
+//            getInputStream(url,urlString,is);
             // 1K的数据缓冲
             byte[] bs = new byte[1024];
             // 读取到的数据长度
@@ -68,6 +82,17 @@ public class DownloadUploadPic {
             }
         }
 
+    }
+
+    public static void getInputStream(URL url, String urlString, InputStream is) throws IOException {
+        url = new URL(urlString);
+        URLConnection con = url.openConnection();
+        if (con.getContentLength() == 278 && urlString.contains("http:")) {
+            urlString = urlString.replace("http:", "https:");
+            getInputStream(url, urlString, is);
+        }
+        // 输入流
+        is = con.getInputStream();
     }
 
 

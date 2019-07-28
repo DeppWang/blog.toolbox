@@ -10,7 +10,7 @@ package top.crossoverjie.nows.nows.filter;
 public interface FilterProcess {
 
     /**
-     * 处理文本
+     * 处理文本，返回需要下载的图片链接地址
      * @param msg
      * @return
      */

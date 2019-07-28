@@ -68,7 +68,10 @@ public class ScanTask implements Runnable {
             Map<String, String> picMapping = downUpPic(stringStream, path);
 
             //替换本地文本
-            replacePic(path, picMapping);
+            if (picMapping.size() > 0) {
+                replacePic(path, picMapping);
+            }
+
         }
 
     }
@@ -134,8 +137,6 @@ public class ScanTask implements Runnable {
         }
 
         logger.info("替换[{}]成功", path);
-
-
     }
 
     /**
@@ -161,6 +162,7 @@ public class ScanTask implements Runnable {
                 pics.add(picAddress);
             }
 
+            //如果文章中有english_title默认使用english_title作为图片名
             if (i == 0 && msg.contains("english_title:")) {
                 filePath = filePath.substring(0, 8) + "-" + msg.substring(15).toLowerCase();
                 i++;
@@ -170,18 +172,21 @@ public class ScanTask implements Runnable {
         for (String pic : pics) {
             String path = appConfig.getDownLoadPath() + "/" + filePath + "---" + pic.substring(pic.lastIndexOf("/") + 1);
             try {
-                if (pic.contains("http:")) {
-                    pic = pic.replace("http:", "https:");
-                }
+
                 DownloadUploadPic.download(pic, path);
 
                 if (!new File(path).exists()) {
                     logger.info("下载[{}]图片成功,地址=[{}]", pic, path);
                 }
             } catch (SSLHandshakeException e) {
-                logger.error("图片地址过期，不能访问！ url=[{}]，图片地址过期，不能访问！", pic);
+                logger.error("图片地址可能过期，不能访问！ url=[{}]", pic);
+                path = "error";
+            } catch (FileNotFoundException e) {
+                logger.error("图片地址过期或地址错误，不能访问！ url=[{}]", pic);
+                path = "error";
             } catch (IOException e) {
-                logger.error("下载图片失败 fileName=[{}]", path, e);
+                logger.error("下载图片失败 url=[{}]", pic, e);
+                path = "error";
             }
 
             //只做备份，不做上传
@@ -190,6 +195,10 @@ public class ScanTask implements Runnable {
             }
 
             try {
+                if (path.equals("error")) {
+                    continue;
+                }
+
                 String uploadAddress = uploadPicService.upload(path);
                 if (uploadAddress == null) {
                     logger.error("上传图片失败,跳过 fileName=[{}]", path);
