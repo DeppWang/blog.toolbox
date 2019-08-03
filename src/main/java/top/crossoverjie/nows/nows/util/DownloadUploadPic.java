@@ -42,25 +42,31 @@ public class DownloadUploadPic {
             logger.info("[{}]已下载完毕，地址=[{}]", urlString, fileName);
             return;
         }
-        URL url = null;
+        URL url;
         OutputStream os = null;
         InputStream is = null;
         try {
             url = new URL(urlString);
-//            BufferedImage image = ImageIO.read(url);
-//            ImageIO.write(image, "jpg", new File(fileName));
-            URLConnection con = url.openConnection();
-            con.setRequestProperty("User-agent", "Mozilla/5.0");
-            //如果url是HTTP格式，使用HTTP下载方法，如果下载下来为空，尝试转换为https下载
-            if (con.getContentLength() == 278 && urlString.contains("http:")) {
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            int responseCode = con.getResponseCode();
+            //如果状态码是301，可能url已更新为https格式，将url转换为https格式
+            if (responseCode == HttpURLConnection.HTTP_MOVED_PERM) {
                 urlString = urlString.replace("http:", "https:");
                 url = new URL(urlString);
-                con = url.openConnection();
+                con = (HttpURLConnection) url.openConnection();
+                responseCode = con.getResponseCode();
+            }
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                url = new URL(urlString);
+                con = (HttpURLConnection) url.openConnection();
+            }
+            else {
+                logger.error("下载图片[{}]失败，HTTP状态码为[{}]，请检查！", urlString, responseCode);
+                return;
             }
             // 输入流
             is = con.getInputStream();
 
-//            getInputStream(url,urlString,is);
             // 1K的数据缓冲
             byte[] bs = new byte[1024];
             // 读取到的数据长度
@@ -71,7 +77,7 @@ public class DownloadUploadPic {
             while ((len = is.read(bs)) != -1) {
                 os.write(bs, 0, len);
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw e;
         } finally {
             if (os != null) {

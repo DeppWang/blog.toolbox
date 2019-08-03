@@ -22,6 +22,22 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+
+
+
+/**
+ *
+ ## 备份模式3：只下载到本地
+ ## 替换模式2：备份+替换
+ 1. 遍历目录下所有文章，
+ 2. 遍历查找当前文章的每一行，看是否有图片链接，有就返回
+ 3. 如果链接为图床链接，过滤掉
+ 4. 如果链接在本地已经存在，跳过下载
+ 5. 但还是上传到图床，因为上传到图床的链接都被过滤掉了
+ 6. 上传成功，原地址与新地址映射
+ 7. 替换当前文章的所有图片链接
+ * 替换模式只有1、2、3
+ */
 @SpringBootApplication
 public class NowsApplication implements CommandLineRunner {
 
@@ -55,9 +71,9 @@ public class NowsApplication implements CommandLineRunner {
     @Override
     public void run(String... strings) throws Exception {
 
-//        if (strings.length == 1) {
-//            fileCount = Integer.parseInt(strings[0]);
-//        }
+        if (strings.length == 1) {
+            fileCount = Integer.parseInt(strings[0]);
+        }
 
         if (config.getAppModel().equals(BaseConstants.TOTAL_WORDS)) {
             filterProcessManager = SpringBeanFactory.getBean(TotalSumFilterProcessManager.class);
@@ -71,8 +87,9 @@ public class NowsApplication implements CommandLineRunner {
             ((PicResultServiceImpl) resultService).setCurrentTime();
         }
 
-//        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile("E://Hexo//Blog//source//_posts");
-        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile("/Users/yanjie/GitHub/deppwang.github.io/source/_posts");
+        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile(strings[0]);
+//        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile("E://GitHub//Blog//source//_posts");
+//        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile("/Users/yanjie/GitHub/deppwang.github.io/source/_posts");
         logger.info("allFile size=[{}]", allFile.size());
         if (fileCount > allFile.size()) {
             fileCount = allFile.size();

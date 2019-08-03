@@ -53,7 +53,7 @@ public class NowsApplicationTests {
     public void picMatch() {
         int count = 0;
         String str = "![](https://ws3.sinaimg.cn/large/006tKfTcly1g0mh751dkxj30qt087752.jpg)";
-        String pattern = "https?://.+\\.(jpg|gif|png)";
+        String pattern = "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)\\.(jpg|gif|png)";
 
         Pattern r = Pattern.compile(pattern);
         Matcher m = r.matcher(str);

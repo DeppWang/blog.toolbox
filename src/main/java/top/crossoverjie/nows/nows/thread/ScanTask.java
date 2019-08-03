@@ -184,7 +184,7 @@ public class ScanTask implements Runnable {
             } catch (FileNotFoundException e) {
                 logger.error("图片地址过期或地址错误，不能访问！ url=[{}]", pic);
                 path = "error";
-            } catch (IOException e) {
+            } catch (Exception e) {
                 logger.error("下载图片失败 url=[{}]", pic, e);
                 path = "error";
             }

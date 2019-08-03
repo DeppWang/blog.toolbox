@@ -48,11 +48,11 @@ public class DownloadPicTest {
     @Test
     public void download2() throws Exception {
         //        String path = "/Users/yanjie/GitHub/deppwang.github.io/images2/20Extreme9Box_575px.jpg";
-        String path = "/Users/yanjie/GitHub/deppwang.github.io/images2/b4c1da1ea127ae27.jpg";
-
+//        String path = "/Users/yanjie/GitHub/deppwang.github.io/images2/b4c1da1ea127ae27.jpg";
+        String path = "E:/GitHub/Blog/images2/fayuan_logo.png";
 //        DownloadUploadPic.download("http://mmbiz.qpic.cn/mmbiz_png/qdzZBE73hWsbhfAng9ibqfcbjrqgyRWqAhJichVhow2eIVjZwNwzdsmksrFicRibsluTYFPXreCVnxy4QUEkAGFQtw/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1", path);
         DownloadUploadPic.download("http://upload-images.jianshu.io/upload_images/5863464-b4c1da1ea127ae27.png", path);
-        DownloadUploadPic.download("http://images.anandtech.com/doci/5434/X79%20Extreme9Box_575px.jpg", path);
+//        DownloadUploadPic.download("http://10.1.234.99:8406/trial/images/login/fayuan_logo.png", path);
     }
 
     @Test
