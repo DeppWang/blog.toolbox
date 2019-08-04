@@ -109,17 +109,18 @@ public class ScanTask implements Runnable {
             String path = appConfig.getDownLoadPath() + "/" + filePath + "---" + pic.substring(pic.lastIndexOf("/") + 1);
             try {
 
-                DownloadUploadPic.download(pic, path);
-
-                // 如果文件在本地不存在，输出提示，避免重复输出
-                if (!new File(path).exists()) {
-                    logger.info("下载 [{}] 图片成功,地址 = [{}]", pic, path);
+                File file = new File(path);
+                if (file.exists()) {
+                    logger.info("[{}] 已下载完毕，地址 = [{}]", pic, path);
+                } else {
+                    DownloadUploadPic.download(pic, path);
+                    logger.info("下载图片 [{}] 成功，地址 = [{}]", pic, path);
                 }
             } catch (HttpRetryException e) {
-                logger.error("下载图片 [{}] 失败，HTTP状态码为 [{}]，请检查 URL！", pic, e.responseCode());
+                logger.error("下载图片失败，url = [{}]，HTTP状态码为 [{}]，请检查 URL！", pic, e.responseCode());
                 path = "error";
             } catch (Exception e) {
-                logger.error("下载图片失败 url=[{}]，请检查URL！", pic, e);
+                logger.error("下载图片失败，url = [{}]，请检查URL！", pic, e);
                 path = "error";
             }
 
@@ -135,7 +136,7 @@ public class ScanTask implements Runnable {
 
                 String uploadAddress = uploadPicService.upload(path);
                 if (uploadAddress == null) {
-                    logger.error("上传图片失败，跳过 fileName=  [{}]", path);
+                    logger.error("上传图片失败，跳过 fileName = [{}]", path);
                     continue;
                 }
 

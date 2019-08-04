@@ -128,7 +128,7 @@ public class DownloadUploadPic {
                 SMResponse smResponse = JSON.parseObject(body.string(), SMResponse.class);
                 return smResponse.getData().getUrl();
             } catch (Exception e) {
-                logger.error("上传图片 [{}] 失败 res = [{}]", fileName, body.string());
+                logger.error("上传图片失败，fileName = [{}]，res = [{}]", fileName, body.string());
                 errorTime++;
                 TimeUnit.SECONDS.sleep(1);
                 return upload(fileName, errorTime);
