@@ -8,6 +8,7 @@ import top.crossoverjie.nows.nows.filter.FixPicFilterProcessManager;
 import top.crossoverjie.nows.nows.thread.ScanTask;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -82,6 +83,13 @@ public class DownloadPicTest {
     public void downPic() {
         filterProcessManager = SpringBeanFactory.getBean(FixPicFilterProcessManager.class);
         executorService.execute(new ScanTask("/Users/yanjie/GitHub/deppwang.github.io/source/_posts/20170611-Hexo搭建博客系列：（一）Hexo安装与添加NexT主题.md", filterProcessManager));
+    }
+
+    @Test
+    public void uploadPic() throws Exception {
+        String path = "/Users/yanjie/GitHub/amyyanjie.github.io/images/20171122-binary-tree-traversal-note---2405011-5f5b0b136713f744.jpg";
+        String s = DownloadUploadPic.upload(path, 0);
+        System.out.println(s);
     }
 
 }

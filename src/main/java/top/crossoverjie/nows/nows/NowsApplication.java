@@ -23,20 +23,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 
-
-
 /**
- *
- ## 备份模式3：只下载到本地
- ## 替换模式2：备份+替换
- 1. 遍历目录下所有文章，
- 2. 遍历查找当前文章的每一行，看是否有图片链接，有就返回
- 3. 如果链接为图床链接，过滤掉
- 4. 如果链接在本地已经存在，跳过下载
- 5. 但还是上传到图床，因为上传到图床的链接都被过滤掉了
- 6. 上传成功，原地址与新地址映射
- 7. 替换当前文章的所有图片链接
- * 替换模式只有1、2、3
+ * 替换模式执行顺序：
+ * 1. 遍历目录下所有文章，（一个文章一个任务）
+ * 2. 遍历查找当前文章的每一行，看是否有图片链接，有就返回，没有返回 null
+ * 3. 如果链接为需要过滤链接，过滤掉，否则加入待下载 list
+ * 4. 依次下载当前文章需要下载的每个图片链接，如果图片在本地已经存在（原来下载了，没有上传成功，或者没有替换成功，文章中依旧是原图片链接），跳过下载
+ * 5. 但还是上传到图床，因为此图片链接还是原图片链接，新图片链接会被过滤
+ * 6. 上传成功，原图片链接与新图床链接映射
+ * 7. 替换当前文章的所有原图片链接
+ * 8. 循环（执行第二个任务）
+ * 备份模式只有1、2、3、4
  */
 @SpringBootApplication
 public class NowsApplication implements CommandLineRunner {
@@ -81,16 +78,16 @@ public class NowsApplication implements CommandLineRunner {
             ((TotalSumResultServiceImpl) resultService).setCurrentTime();
 
         } else {
-            filterProcessManager = SpringBeanFactory.getBean(FixPicFilterProcessManager.class);//执行过滤
+            filterProcessManager = SpringBeanFactory.getBean(FixPicFilterProcessManager.class);
             resultService = SpringBeanFactory.getBean(PicResultServiceImpl.class);
             fileCount = 100;
             ((PicResultServiceImpl) resultService).setCurrentTime();
         }
 
-        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile(strings[0]);
+//        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile(strings[0]);
 //        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile("E://GitHub//Blog//source//_posts");
-//        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile("/Users/yanjie/GitHub/deppwang.github.io/source/_posts");
-        logger.info("allFile size=[{}]", allFile.size());
+        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile("/Users/yanjie/GitHub/amyyanjie.github.io/source/_posts");
+        logger.info("allFile size = [{}]", allFile.size());
         if (fileCount > allFile.size()) {
             fileCount = allFile.size();
         }

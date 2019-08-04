@@ -9,6 +9,7 @@ import top.crossoverjie.nows.nows.pojo.SMResponse;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.HttpRetryException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -39,7 +40,7 @@ public class DownloadUploadPic {
     public static void download(String urlString, String fileName) throws IOException {
         File file = new File(fileName);
         if (file.exists()) {
-            logger.info("[{}]已下载完毕，地址=[{}]", urlString, fileName);
+            logger.info("[{}] 已下载完毕，地址 = [{}]", urlString, fileName);
             return;
         }
         URL url;
@@ -49,7 +50,7 @@ public class DownloadUploadPic {
             url = new URL(urlString);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             int responseCode = con.getResponseCode();
-            //如果状态码是301，可能url已更新为https格式，将url转换为https格式
+            // 如果状态码是 301，可能 url 已更新为 https 格式，将 url 转换为 https 格式
             if (responseCode == HttpURLConnection.HTTP_MOVED_PERM) {
                 urlString = urlString.replace("http:", "https:");
                 url = new URL(urlString);
@@ -59,10 +60,8 @@ public class DownloadUploadPic {
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 url = new URL(urlString);
                 con = (HttpURLConnection) url.openConnection();
-            }
-            else {
-                logger.error("下载图片[{}]失败，HTTP状态码为[{}]，请检查！", urlString, responseCode);
-                return;
+            } else {
+                throw new HttpRetryException("HTTP状态码为 " + responseCode + "，请检查！", responseCode);
             }
             // 输入流
             is = con.getInputStream();
@@ -105,7 +104,7 @@ public class DownloadUploadPic {
     public static String upload(String fileName, int errorTime) throws IOException, InterruptedException {
 
         if (errorTime == 5) {
-            logger.error("[{}]上传失败次数达到上限{}次", fileName, errorTime);
+            logger.error("[{}] 上传失败次数达到上限 {} 次", fileName, errorTime);
             return null;
         }
 
@@ -129,7 +128,7 @@ public class DownloadUploadPic {
                 SMResponse smResponse = JSON.parseObject(body.string(), SMResponse.class);
                 return smResponse.getData().getUrl();
             } catch (Exception e) {
-                logger.error("上传图片[{}]失败 res=[{}]", fileName, body.string());
+                logger.error("上传图片 [{}] 失败 res = [{}]", fileName, body.string());
                 errorTime++;
                 TimeUnit.SECONDS.sleep(1);
                 return upload(fileName, errorTime);

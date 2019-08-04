@@ -9,8 +9,8 @@ import top.crossoverjie.nows.nows.service.UploadPicService;
 import top.crossoverjie.nows.nows.util.DownloadUploadPic;
 import top.crossoverjie.nows.nows.util.SpringBeanFactory;
 
-import javax.net.ssl.SSLHandshakeException;
 import java.io.*;
+import java.net.HttpRetryException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -56,6 +56,7 @@ public class ScanTask implements Runnable {
             logger.error("IOException", e);
         }
 
+        // 如果是统计字数
         if (appConfig.getAppModel().equals(BaseConstants.TOTAL_WORDS)) {
             List<String> collect = stringStream.collect(Collectors.toList());
             for (String msg : collect) {
@@ -63,16 +64,90 @@ public class ScanTask implements Runnable {
             }
 
         } else {
-
-            //下载旧图及上传新图
+            // 下载旧图及上传新图
             Map<String, String> picMapping = downUpPic(stringStream, path);
 
-            //替换本地文本
+            // 替换本地文本
             if (picMapping.size() > 0) {
                 replacePic(path, picMapping);
             }
 
         }
+    }
+
+    /**
+     * 下载和上传图片
+     *
+     * @param stringStream
+     * @return
+     */
+    private Map<String, String> downUpPic(Stream<String> stringStream, String filePath) {
+        // 文件前缀
+        int index = filePath.lastIndexOf(System.getProperty("file.separator"));
+        filePath = filePath.substring(index + 1);
+
+        Map<String, String> picMapping = new HashMap<>(16);
+
+        List<String> pics = new ArrayList<>(10);
+
+        List<String> collect = stringStream.collect(Collectors.toList());
+        int i = 0;
+        for (String msg : collect) {
+            String picAddress = filterProcessManager.process(msg);
+            if (picAddress != null) {
+                pics.add(picAddress);
+            }
+
+            // 如果文章中有 english_title 默认使用 english_title 作为部分图片名
+            if (i == 0 && msg.contains("english_title:")) {
+                filePath = filePath.substring(0, 8) + "-" + msg.substring(15).toLowerCase();
+                i++;
+            }
+        }
+
+        for (String pic : pics) {
+            String path = appConfig.getDownLoadPath() + "/" + filePath + "---" + pic.substring(pic.lastIndexOf("/") + 1);
+            try {
+
+                DownloadUploadPic.download(pic, path);
+
+                // 如果文件在本地不存在，输出提示，避免重复输出
+                if (!new File(path).exists()) {
+                    logger.info("下载 [{}] 图片成功,地址 = [{}]", pic, path);
+                }
+            } catch (HttpRetryException e) {
+                logger.error("下载图片 [{}] 失败，HTTP状态码为 [{}]，请检查 URL！", pic, e.responseCode());
+                path = "error";
+            } catch (Exception e) {
+                logger.error("下载图片失败 url=[{}]，请检查URL！", pic, e);
+                path = "error";
+            }
+
+            // 只做备份，不做上传
+            if (appConfig.getAppModel().equals(BaseConstants.FixPic.BACK_UP_MODEL)) {
+                continue;
+            }
+
+            try {
+                if (path.equals("error")) {
+                    continue;
+                }
+
+                String uploadAddress = uploadPicService.upload(path);
+                if (uploadAddress == null) {
+                    logger.error("上传图片失败，跳过 fileName=  [{}]", path);
+                    continue;
+                }
+
+                logger.info("【上传 [{}] 图片成功，地址=[{}]】", pic, uploadAddress);
+                picMapping.put(pic, uploadAddress);
+            } catch (Exception e) {
+                logger.error("上传图片失败，fileName=  [{}]", path);
+            }
+
+        }
+
+        return picMapping;
 
     }
 
@@ -123,7 +198,7 @@ public class ScanTask implements Runnable {
 
 
             } catch (Exception e) {
-                logger.error("替换内容失败，源=[{}]，目标=[{}]", oldPic, newPic, e);
+                logger.error("替换内容失败，源 = [{}]，目标 = [{}]", oldPic, newPic, e);
             } finally {
                 try {
                     out.close();
@@ -136,84 +211,7 @@ public class ScanTask implements Runnable {
             }
         }
 
-        logger.info("替换[{}]成功", path);
+        logger.info("替换 [{}] 成功", path);
     }
 
-    /**
-     * 下载和上传图片
-     *
-     * @param stringStream
-     * @return
-     */
-    private Map<String, String> downUpPic(Stream<String> stringStream, String filePath) {
-        //文件前缀
-        int index = filePath.lastIndexOf(System.getProperty("file.separator"));
-        filePath = filePath.substring(index + 1);
-
-        Map<String, String> picMapping = new HashMap<>(16);
-
-        List<String> pics = new ArrayList<>(10);
-
-        List<String> collect = stringStream.collect(Collectors.toList());
-        int i = 0;
-        for (String msg : collect) {
-            String picAddress = filterProcessManager.process(msg);
-            if (picAddress != null) {
-                pics.add(picAddress);
-            }
-
-            //如果文章中有english_title默认使用english_title作为图片名
-            if (i == 0 && msg.contains("english_title:")) {
-                filePath = filePath.substring(0, 8) + "-" + msg.substring(15).toLowerCase();
-                i++;
-            }
-        }
-
-        for (String pic : pics) {
-            String path = appConfig.getDownLoadPath() + "/" + filePath + "---" + pic.substring(pic.lastIndexOf("/") + 1);
-            try {
-
-                DownloadUploadPic.download(pic, path);
-
-                if (!new File(path).exists()) {
-                    logger.info("下载[{}]图片成功,地址=[{}]", pic, path);
-                }
-            } catch (SSLHandshakeException e) {
-                logger.error("图片地址可能过期，不能访问！ url=[{}]", pic);
-                path = "error";
-            } catch (FileNotFoundException e) {
-                logger.error("图片地址过期或地址错误，不能访问！ url=[{}]", pic);
-                path = "error";
-            } catch (Exception e) {
-                logger.error("下载图片失败 url=[{}]", pic, e);
-                path = "error";
-            }
-
-            //只做备份，不做上传
-            if (appConfig.getAppModel().equals(BaseConstants.FixPic.BACK_UP_MODEL)) {
-                continue;
-            }
-
-            try {
-                if (path.equals("error")) {
-                    continue;
-                }
-
-                String uploadAddress = uploadPicService.upload(path);
-                if (uploadAddress == null) {
-                    logger.error("上传图片失败,跳过 fileName=[{}]", path);
-                    continue;
-                }
-
-                logger.info("【上传[{}]图片成功,地址=[{}]】", pic, uploadAddress);
-                picMapping.put(pic, uploadAddress);
-            } catch (Exception e) {
-                logger.error("上传图片失败 fileName=[{}]", path);
-            }
-
-        }
-
-        return picMapping;
-
-    }
 }

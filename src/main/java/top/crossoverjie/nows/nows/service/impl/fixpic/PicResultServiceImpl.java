@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import top.crossoverjie.nows.nows.service.ResultService;
 
 /**
- * Function:
+ * Function: 记录任务耗时
  *
  * @author crossoverJie
  * Date: 2019-05-06 21:18
@@ -21,9 +21,10 @@ public class PicResultServiceImpl implements ResultService {
     public void setCurrentTime() {
         TIME_THREAD_LOCAL.set(System.currentTimeMillis());
     }
+
     @Override
     public void end() {
         long end = System.currentTimeMillis();
-        logger.info("任务完成，耗时[{}] ms", end - TIME_THREAD_LOCAL.get());
+        logger.info("任务完成，耗时 [{}] ms", end - TIME_THREAD_LOCAL.get());
     }
 }
