@@ -59,10 +59,12 @@ public class NowsApplication implements CommandLineRunner {
     @Autowired
     private ExecutorService executorService;
 
-
+    // 第一个参数：待替换文件目录地址；第二个参数：限制替换图片的数量
     public static void main(String[] args) {
+//        args = new String[2];
+//        args[0] = "/Users/yanjie/GitHub/markdown-image";
+//        args[1] = "10";
         SpringApplication.run(NowsApplication.class, args);
-
     }
 
     @Override
@@ -72,6 +74,7 @@ public class NowsApplication implements CommandLineRunner {
             fileCount = Integer.parseInt(strings[0]);
         }
 
+        // 如果是统计字数
         if (config.getAppModel().equals(BaseConstants.TOTAL_WORDS)) {
             filterProcessManager = SpringBeanFactory.getBean(TotalSumFilterProcessManager.class);
             resultService = SpringBeanFactory.getBean(TotalSumResultServiceImpl.class);
@@ -80,11 +83,11 @@ public class NowsApplication implements CommandLineRunner {
         } else {
             filterProcessManager = SpringBeanFactory.getBean(FixPicFilterProcessManager.class);
             resultService = SpringBeanFactory.getBean(PicResultServiceImpl.class);
-            fileCount = Integer.parseInt(strings[1]);
+            fileCount = 10;
             ((PicResultServiceImpl) resultService).setCurrentTime();
         }
 
-        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile(strings[0]);
+        Set<ScannerFile.FileInfo> allFile = scannerFile.getAllFile("/Users/yanjie/GitHub/markdown-image");
         logger.info("allFile size = [{}]", allFile.size());
         if (fileCount > allFile.size()) {
             fileCount = allFile.size();

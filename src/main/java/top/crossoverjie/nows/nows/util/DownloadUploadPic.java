@@ -95,9 +95,12 @@ public class DownloadUploadPic {
                 .addFormDataPart("smfile", "i", fileBody)
                 .build();
 
+
+        // 为 request 设置 headers，通过为 request 的内部类 Builder 设值，内部类的值再转换为 request 的值。
         Request request = new Request.Builder()
-                .url("https://sm.ms/api/upload")
-                .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36")
+                .url("https://sm.ms/api/v2/upload")
+                .addHeader("Authorization", "SGSLk9yWcTe4RenXYqEPMkqVrx0Y8qI0") // 设置 header 的数值
+                .addHeader("User-Agent", "mdnice") // 设置 header 的数值
                 .post(requestBody)
                 .build();
 

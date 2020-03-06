@@ -100,7 +100,7 @@ public class ScanTask implements Runnable {
 
             // 如果文章中有 english_title 默认使用 english_title 作为部分图片名，避免图片名含有中文
             if (i == 0 && msg.contains("english_title:")) {
-                filePath = filePath.substring(0, 8) + "-" + msg.substring(15).toLowerCase();
+                filePath = msg.substring(15).toLowerCase();
                 i++;
             }
         }
